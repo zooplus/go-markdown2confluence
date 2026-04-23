@@ -1,6 +1,6 @@
 module github.com/justmiles/go-markdown2confluence
 
-go 1.25.9
+go 1.26.2
 
 require (
 	github.com/justmiles/go-confluence v0.2.0
