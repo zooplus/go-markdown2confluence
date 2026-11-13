@@ -238,7 +238,10 @@ func (client *Client) UpdateAttachment(contentID, attachmentID, path string, min
 		return nil, err
 	}
 
-	_, err = io.Copy(part, file)
+	// hash while copying: the file is read only once, so hashing it in a
+	// second io.Copy would see EOF and always yield the md5 of empty input
+	hash := md5.New()
+	_, err = io.Copy(io.MultiWriter(part, hash), file)
 	if err != nil {
 		return nil, err
 	}
@@ -248,11 +251,6 @@ func (client *Client) UpdateAttachment(contentID, attachmentID, path string, min
 		return nil, err
 	}
 
-	hash := md5.New()
-	_, err = io.Copy(hash, file)
-	if err != nil {
-		return nil, err
-	}
 	hashInBytes := hash.Sum(nil)[:16]
 	md5HashString := hex.EncodeToString(hashInBytes)
 
@@ -308,16 +306,14 @@ func (client *Client) AddAttachment(contentID, path string) (*Attachment, error)
 		return nil, err
 	}
 
-	_, err = io.Copy(part, file)
+	// hash while copying: the file is read only once, so hashing it in a
+	// second io.Copy would see EOF and always yield the md5 of empty input
+	hash := md5.New()
+	_, err = io.Copy(io.MultiWriter(part, hash), file)
 	if err != nil {
 		return nil, err
 	}
 
-	hash := md5.New()
-	_, err = io.Copy(hash, file)
-	if err != nil {
-		return nil, err
-	}
 	hashInBytes := hash.Sum(nil)[:16]
 	md5HashString := hex.EncodeToString(hashInBytes)
 
@@ -355,17 +351,38 @@ func (client *Client) AddAttachment(contentID, path string) (*Attachment, error)
 	return &attachments.Results[0], nil
 }
 
+// attachmentUnchanged reports whether the stored attachment carries the md5 of
+// the local file in its comment, which is where Add/UpdateAttachment put it.
+func attachmentUnchanged(existing *Attachment, path string) bool {
+	file, err := os.Open(path)
+	if err != nil {
+		return false
+	}
+	defer file.Close()
+
+	hash := md5.New()
+	if _, err := io.Copy(hash, file); err != nil {
+		return false
+	}
+	return existing.Metadata.Comment == hex.EncodeToString(hash.Sum(nil))
+}
+
 // AddUpdateAttachments ...
 func (client *Client) AddUpdateAttachments(contentID string, files []string) ([]*Attachment, []error) {
 	var results []*Attachment
 	var errors []error
 	for _, f := range files {
 		filename := path.Base(f)
-		attachment, err := client.GetAttachmentByFilename(contentID, filename)
-		if err != nil {
+		var attachment *Attachment
+		existing, err := client.GetAttachmentByFilename(contentID, filename)
+		switch {
+		case err != nil:
 			attachment, err = client.AddAttachment(contentID, f)
-		} else {
-			attachment, err = client.UpdateAttachment(contentID, attachment.ID, f, true)
+		case attachmentUnchanged(existing, f):
+			// same content already stored, re-uploading only risks server errors
+			attachment = existing
+		default:
+			attachment, err = client.UpdateAttachment(contentID, existing.ID, f, true)
 		}
 		if err == nil {
 			results = append(results, attachment)
