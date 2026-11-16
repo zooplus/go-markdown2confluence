@@ -1,6 +1,6 @@
 ARG VERSION=latest
 
-FROM golang:1.14 as builder
+FROM golang:1.27 as builder
 ARG VERSION
 
 WORKDIR /go/src
