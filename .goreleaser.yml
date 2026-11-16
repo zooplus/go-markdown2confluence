@@ -1,21 +1,10 @@
+version: 2
+
+project_name: markdown2confluence
+
 before:
   hooks:
     - go mod download
-
-dockers:
-  - 
-    image_templates:
-    - "justmiles/markdown2confluence:latest"
-    - "justmiles/markdown2confluence:{{ .Tag }}"
-    - "justmiles/markdown2confluence:v{{ .Major }}"
-    build_flag_templates:
-    - "--label=org.opencontainers.image.created={{.Date}}"
-    - "--label=org.opencontainers.image.title={{.ProjectName}}"
-    - "--label=org.opencontainers.image.revision={{.FullCommit}}"
-    - "--label=org.opencontainers.image.version={{.Version}}"
-    - "--build-arg=VERSION={{ .Tag }}"
-    - "--platform=linux/arm64"
-    dockerfile: .goreleaser.dockerfile
 
 builds:
   - env:
@@ -24,15 +13,33 @@ builds:
       - darwin
       - windows
       - linux
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
     binary: markdown2confluence
+    ldflags:
+      - -s -w -X main.version={{ .Version }}
+
 archives:
-  - replacements:
-      386: i386
-      amd64: x86_64
+  - name_template: >-
+      {{ .ProjectName }}_{{ .Version }}_{{ .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+    formats: [tar.gz]
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+
 checksum:
   name_template: "checksums.txt"
+
 snapshot:
-  name_template: "{{ .Tag }}"
+  version_template: "{{ .Tag }}-snapshot"
+
 changelog:
   sort: asc
   filters:
@@ -40,3 +47,22 @@ changelog:
       - "^docs:"
       - "^test:"
       - "^scratch:"
+      - "^chore\\(deps\\)"
+
+dockers_v2:
+  - images:
+      - "ghcr.io/zooplus/markdown2confluence"
+    tags:
+      - "latest"
+      - "{{ .Tag }}"
+      - "v{{ .Major }}"
+    platforms:
+      - linux/amd64
+      - linux/arm64
+    dockerfile: .goreleaser.dockerfile
+    labels:
+      "org.opencontainers.image.created": "{{ .Date }}"
+      "org.opencontainers.image.title": "{{ .ProjectName }}"
+      "org.opencontainers.image.revision": "{{ .FullCommit }}"
+      "org.opencontainers.image.version": "{{ .Version }}"
+      "org.opencontainers.image.source": "https://github.com/zooplus/go-markdown2confluence"

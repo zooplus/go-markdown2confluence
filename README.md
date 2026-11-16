@@ -2,7 +2,7 @@
 
 Push markdown files to Confluence Cloud
 
-[![Build Status](https://drone.justmiles.io/api/badges/justmiles/go-markdown2confluence/status.svg)](https://drone.justmiles.io/justmiles/go-markdown2confluence)
+[![Build & Release](https://github.com/zooplus/go-markdown2confluence/actions/workflows/build-go.yml/badge.svg)](https://github.com/zooplus/go-markdown2confluence/actions/workflows/build-go.yml)
 
 ## Installation
 
@@ -33,13 +33,13 @@ and add the binary in your local `PATH`
 ## Use with Docker
 
 ```shell
-docker run justmiles/markdown2confluence --version
+docker run ghcr.io/zooplus/markdown2confluence --version
 ```
 
 ### Build using docker
 
 ```shell
-docker run -v $PWD:/src -w /src goreleaser/goreleaser --snapshot --skip-publish --rm-dist
+docker run -v $PWD:/src -w /src goreleaser/goreleaser release --snapshot --skip=publish --clean
 ```
 
 ## Environment Variables
