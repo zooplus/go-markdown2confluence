@@ -2,44 +2,38 @@
 
 Push markdown files to Confluence Cloud
 
-[![Build Status](https://drone.justmiles.io/api/badges/justmiles/go-markdown2confluence/status.svg)](https://drone.justmiles.io/justmiles/go-markdown2confluence)
+[![Build & Release](https://github.com/zooplus/go-markdown2confluence/actions/workflows/build-go.yml/badge.svg)](https://github.com/zooplus/go-markdown2confluence/actions/workflows/build-go.yml)
 
 ## Installation
 
-Download the [latest
-release](https://github.com/justmiles/go-markdown2confluence/releases)
-and add the binary in your local `PATH`
+Download the binary for your platform from the [latest
+release](https://github.com/zooplus/go-markdown2confluence/releases/latest)
+and add it to your `PATH`. Binaries are named
+`markdown2confluence-<os>-<arch>` (`linux`, `macos`, `windows`; `amd64`,
+`arm64`) and checksums are published in `sha512sums.txt`.
 
 - Linux
 
   ```shell
-  curl -LO https://github.com/justmiles/go-markdown2confluence/releases/download/v3.4.6/go-markdown2confluence_3.4.6_linux_x86_64.tar.gz
-
-  sudo tar -xzvf go-markdown2confluence_3.4.6_linux_x86_64.tar.gz -C /usr/local/bin/ markdown2confluence
+  curl -L -o markdown2confluence https://github.com/zooplus/go-markdown2confluence/releases/latest/download/markdown2confluence-linux-amd64
+  chmod +x markdown2confluence && sudo mv markdown2confluence /usr/local/bin/
   ```
 
-- OSX
+- macOS
 
   ```shell
-  curl -LO https://github.com/justmiles/go-markdown2confluence/releases/download/v3.4.6/go-markdown2confluence_3.4.6_darwin_x86_64.tar.gz
-
-  sudo tar -xzvf go-markdown2confluence_3.4.6_darwin_x86_64.tar.gz -C /usr/local/bin/ markdown2confluence
+  curl -L -o markdown2confluence https://github.com/zooplus/go-markdown2confluence/releases/latest/download/markdown2confluence-macos-arm64
+  chmod +x markdown2confluence && sudo mv markdown2confluence /usr/local/bin/
   ```
 
 - Windows
 
-  Download [the latest release](https://github.com/justmiles/go-markdown2confluence/releases/download/v3.4.6/go-markdown2confluence_3.4.6_windows_x86_64.tar.gz) and add to your system `PATH`
+  Download `markdown2confluence-windows-amd64.exe` from [the latest release](https://github.com/zooplus/go-markdown2confluence/releases/latest) and add it to your system `PATH`
 
-## Use with Docker
-
-```shell
-docker run justmiles/markdown2confluence --version
-```
-
-### Build using docker
+## Building locally
 
 ```shell
-docker run -v $PWD:/src -w /src goreleaser/goreleaser --snapshot --skip-publish --rm-dist
+go build -ldflags="-X main.version=dev" -o markdown2confluence .
 ```
 
 ## Environment Variables
