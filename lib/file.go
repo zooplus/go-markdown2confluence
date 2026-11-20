@@ -131,7 +131,7 @@ func (f *MarkdownFile) Upload(m *Markdown2Confluence) (urlPath string, err error
 		currContentID = content.ID
 	}
 
-	_, errors := m.client.AddUpdateAttachments(currContentID, images)
+	errors := syncAttachments(m.client, currContentID, images)
 	if len(errors) > 0 {
 		fmt.Println(errors)
 		err = errors[0]
