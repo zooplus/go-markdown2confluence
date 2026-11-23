@@ -17,7 +17,8 @@ type ConfluenceFencedCodeBlockHTMLRender struct {
 }
 
 const (
-	LanguageStringConfluenceMacro string = "CONFLUENCE-MACRO"
+	LanguageStringConfluenceMacro    string = "CONFLUENCE-MACRO"
+	LanguageStringConfluenceMacroRaw string = "CONFLUENCE-MACRO-RAW"
 
 	MacroContentKeyPlainTextBody string = "plain-text-body"
 	MacroContentKeyRichTextBody  string = "rich-text-body"
@@ -57,6 +58,10 @@ func (r *ConfluenceFencedCodeBlockHTMLRender) renderConfluenceFencedCode(w util.
 	case LanguageStringConfluenceMacro:
 		if entering {
 			r.writeMacro(w, source, n)
+		}
+	case LanguageStringConfluenceMacroRaw:
+		if entering {
+			r.writeMacroRaw(w, source, n)
 		}
 	default:
 		if entering {
@@ -133,4 +138,13 @@ func (r *ConfluenceFencedCodeBlockHTMLRender) writeMacro(w util.BufWriter, sourc
 	w.WriteString(parameters.String())
 	// and finish it off
 	w.WriteString("</ac:structured-macro>")
+}
+
+func (r *ConfluenceFencedCodeBlockHTMLRender) writeMacroRaw(w util.BufWriter, source []byte, n ast.Node) {
+	l := n.Lines().Len()
+	for i := 0; i < l; i++ {
+		line := n.Lines().At(i)
+		text := string(line.Value(source))
+		w.WriteString(text)
+	}
 }
